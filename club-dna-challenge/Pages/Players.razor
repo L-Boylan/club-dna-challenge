@@ -1,7 +1,9 @@
-@page "/players/{PlayersHash:int}"
+@page "/players/{TokenHash:int}/{PlayersHash:int}/{Page:int}/{PageSize:int}"
+@using System.Net.Http.Headers
 @using club_dna_challenge.Models
 @inject StateContainer StateContainer
 @inject NavigationManager NavigationManager
+@inject HttpClient HttpClient
 
 <MudPaper Class="d-flex flex-wrap gap-4">
     @foreach (var (player, index) in _playerData.Players.Select((player, index) => ( player, index )))
@@ -26,14 +28,21 @@
     </MudPopover>
 </MudPaper>
 
-<MudPagination Color="Color.Primary" Count="@_playerData.TotalPages" @bind-Selected="@_selectedPage"/>
+<MudPagination Color="Color.Primary" Count="@_playerData.TotalPages" SelectedChanged="Callback"/>
 <MudText Align="Align.Center">Selected page: @_selectedPage</MudText>
 
 @code {
     [Parameter]
+    public int TokenHash { get; set; }
+    [Parameter]
     public int PlayersHash { get; set; }
+    [Parameter]
+    public int Page { get; set; }
+    [Parameter]
+    public int PageSize { get; set; }
     
     GetPlayerDataClubDnaResponse _playerData = new();
+    GetTokenResponse _token = new();
     List<bool> _checked = new();
     bool _popoverToggle;
     int _selectedPage = 1;
@@ -41,6 +50,7 @@
     protected override void OnInitialized()
     {
         _playerData = (GetPlayerDataClubDnaResponse)StateContainer.ObjectTunnel[PlayersHash];
+        _token = (GetTokenResponse)StateContainer.ObjectTunnel[TokenHash];
         foreach (var player in _playerData.Players)
         {
             _checked.Add(false);
@@ -104,4 +114,17 @@
         }
         
     }
+
+    async void Callback(int selectedPage)
+    {
+        _selectedPage = selectedPage;
+
+        HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",_token.Data.Token);
+        var response = await HttpClient.GetAsync($"https://api-dev.club-dna.com/api/test/players?page={selectedPage}&pagesize={PageSize}").ConfigureAwait(false);
+        var responseContent = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+        _playerData = JsonConvert.DeserializeObject<GetPlayerDataClubDnaResponse>(responseContent);
+        
+        StateHasChanged();
+    }
+
 }

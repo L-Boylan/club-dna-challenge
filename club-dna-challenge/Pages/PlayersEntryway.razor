@@ -11,6 +11,9 @@
     [Parameter]
     public int PlayerDataHash { get; set; }
 
+    int _page = 1;
+    int _pageSize = 5;
+
     GetPlayerDataClubDnaResponse _playerData = new();
     
     async void LoadPlayerData()
@@ -18,7 +21,7 @@
         var token = (GetTokenResponse)StateContainer.ObjectTunnel[PlayerDataHash];
         HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Data.Token);
 
-        var response = await HttpClient.GetAsync("https://api-dev.club-dna.com/api/test/players").ConfigureAwait(false);
+        var response = await HttpClient.GetAsync($"https://api-dev.club-dna.com/api/test/players?page={_page}&pagesize={_pageSize}").ConfigureAwait(false);
 
         if (response.IsSuccessStatusCode)
         {
@@ -26,7 +29,7 @@
             _playerData = JsonConvert.DeserializeObject<GetPlayerDataClubDnaResponse>(responseContent);
             StateContainer.ObjectTunnel.Add(_playerData.GetHashCode(), _playerData);
             
-            NavigationManager.NavigateTo($"players/{_playerData.GetHashCode()}");
+            NavigationManager.NavigateTo($"players/{PlayerDataHash}/{_playerData.GetHashCode()}/{_page}/{_pageSize}");
         }
     }
     
