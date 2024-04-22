@@ -22,11 +22,16 @@
             </MudCard>
         </MudItem>
     </MudGrid>
+    <MudPopover Open="@_popoverToggle" Class="px-4 pt-4">
+        <MudText>Login failed</MudText>
+        <MudButton OnClick="@PopoverToggle" Class="ml-auto mr-n3 mb-1" Color="Color.Error">Close</MudButton>
+    </MudPopover>
 </EditForm>
 
 @code {
     public LoginData loginData = new();
     GetTokenResponse GetTokenResponse = new();
+    bool _popoverToggle;
 
     private async void OnValidSubmit(EditContext context)
     {
@@ -45,9 +50,15 @@
         }
         else
         {
-            NavigationManager.NavigateTo("loginFailed");
+            _popoverToggle = true;
+            //NavigationManager.NavigateTo("loginFailed");
         }
         
+    }
+
+    void PopoverToggle()
+    {
+        _popoverToggle = !_popoverToggle;
     }
     
 }
