@@ -1,0 +1,107 @@
+@page "/players/{PlayersHash:int}"
+@using club_dna_challenge.Models
+@inject StateContainer StateContainer
+@inject NavigationManager NavigationManager
+
+<MudPaper Class="d-flex flex-wrap gap-4">
+    @foreach (var (player, index) in _playerData.Players.Select((player, index) => ( player, index )))
+    {
+        <MudCard>
+            <MudCardMedia Image="@player.PhotoUrl" Height="200"></MudCardMedia>
+            <MudCardContent>
+                <MudText Typo="Typo.h5">@player.Forename @player.Surname</MudText>
+            </MudCardContent>
+            <MudCardActions>
+                <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="((e) => OpenPlayerPageWithPlayerData(index))">View</MudButton>
+            </MudCardActions>
+            <MudCheckBox Color="Color.Primary" T="bool" bind-Value="@_checked[index]" ValueChanged="() => CheckboxToggle(index)"></MudCheckBox>
+        </MudCard>
+    }
+    <MudSpacer></MudSpacer>
+    <MudCheckBox T="bool" Label="Select All" ValueChanged="() => SelectAll()" Style="align-content: center"></MudCheckBox>
+    <MudButton Color="Color.Primary" OnClick="@CompareSelected" Style="align-content: center">Compare Selected</MudButton>
+    <MudPopover Open="@_popoverToggle" Class="px-4 pt-4">
+        <MudText>No players selected</MudText>
+        <MudButton OnClick="@PopoverToggle" Class="ml-auto mr-n3 mb-1" Color="Color.Error">Close</MudButton>
+    </MudPopover>
+</MudPaper>
+
+<MudPagination Color="Color.Primary" Count="@_playerData.TotalPages" @bind-Selected="@_selectedPage"/>
+<MudText Align="Align.Center">Selected page: @_selectedPage</MudText>
+
+@code {
+    [Parameter]
+    public int PlayersHash { get; set; }
+    
+    GetPlayerDataClubDnaResponse _playerData = new();
+    List<bool> _checked = new();
+    bool _popoverToggle;
+    int _selectedPage = 1;
+
+    protected override void OnInitialized()
+    {
+        _playerData = (GetPlayerDataClubDnaResponse)StateContainer.ObjectTunnel[PlayersHash];
+        foreach (var player in _playerData.Players)
+        {
+            _checked.Add(false);
+        }
+    }
+
+    void OpenPlayerPageWithPlayerData(int index)
+    {
+        var data = _playerData.Players[index];
+        StateContainer.ObjectTunnel.Add(data.GetHashCode(), data);
+        
+        NavigationManager.NavigateTo($"player/{data.GetHashCode()}");
+    }
+
+    void CompareSelected()
+    {
+        var players = new List<Models.Player>();
+        
+        foreach (var (c, i) in _checked.Select((c, i) => (c, i)))
+        {
+            if (!c) continue;
+            players.Add(_playerData.Players[i]);
+        }
+
+        if (players.Count == 0)
+        {
+            _popoverToggle = true;
+        }
+        else
+        {
+            StateContainer.ObjectTunnel.Add(players.GetHashCode(), players);
+            NavigationManager.NavigateTo($"playerComparison/{players.GetHashCode()}");
+        }
+    }
+
+    void PopoverToggle()
+    {
+        _popoverToggle = !_popoverToggle;
+    }
+
+    void CheckboxToggle(int index)
+    {
+        _checked[index] = !_checked[index];
+    }
+
+    void SelectAll()
+    {
+        if (!_checked[0])
+        {
+            for (int index = 0; index < _checked.Count; index++)
+            {
+                _checked[index] = true;
+            }
+        }
+        else
+        {
+            for (int index = 0; index < _checked.Count; index++)
+            {
+                _checked[index] = false;
+            }
+        }
+        
+    }
+}

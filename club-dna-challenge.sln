@@ -1,0 +1,16 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "club-dna-challenge", "club-dna-challenge\club-dna-challenge.csproj", "{6E797E46-8B38-458C-B83E-A0FA8E5F5DFA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6E797E46-8B38-458C-B83E-A0FA8E5F5DFA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6E797E46-8B38-458C-B83E-A0FA8E5F5DFA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6E797E46-8B38-458C-B83E-A0FA8E5F5DFA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6E797E46-8B38-458C-B83E-A0FA8E5F5DFA}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

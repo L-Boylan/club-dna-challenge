@@ -1,0 +1,53 @@
+@page "/login"
+@using System.Text
+@using club_dna_challenge.Models
+@inject HttpClient HttpClient
+@inject NavigationManager NavigationManager
+@inject StateContainer StateContainer
+
+<EditForm Model="@loginData" OnValidSubmit="OnValidSubmit">
+    <DataAnnotationsValidator/>
+    <MudGrid>
+        <MudItem xs="12" sm="7">
+            <MudCard>
+                <MudCardContent>
+                    <MudTextField Label="Email" Class="mt-3"
+                                  @bind-Value="loginData.Email" For="@(() => loginData.Email)"/>
+                    <MudTextField Label="Password" HelperText="Choose a strong password" Class="mt-3"
+                                  @bind-Value="loginData.Password" For="@(() => loginData.Password)" InputType="InputType.Password"/>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Login</MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+    </MudGrid>
+</EditForm>
+
+@code {
+    public LoginData loginData = new();
+    GetTokenResponse GetTokenResponse = new();
+
+    private async void OnValidSubmit(EditContext context)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Post, "https://api-dev.club-dna.com/api/identity/token");
+        request.Method = HttpMethod.Post;
+        request.Content = new StringContent(JsonConvert.SerializeObject(loginData), Encoding.UTF8, "application/json");
+        
+        var response = await HttpClient.SendAsync(request).ConfigureAwait(false);
+        var responseContent = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+        GetTokenResponse = JsonConvert.DeserializeObject<GetTokenResponse>(responseContent);
+        
+        if (GetTokenResponse.Succeeded)
+        {
+            StateContainer.ObjectTunnel.Add(GetTokenResponse.GetHashCode(), GetTokenResponse);
+            NavigationManager.NavigateTo($"playersEntryway/{GetTokenResponse.GetHashCode()}");
+        }
+        else
+        {
+            NavigationManager.NavigateTo("loginFailed");
+        }
+        
+    }
+    
+}

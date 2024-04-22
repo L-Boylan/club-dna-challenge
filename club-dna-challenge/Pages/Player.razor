@@ -1,0 +1,54 @@
+@page "/player/{playerHashCode:int}"
+@using club_dna_challenge.Models
+@inject StateContainer StateContainer
+
+<MudStack Row="true" Wrap="Wrap.Wrap" AlignItems="AlignItems.Start">
+    <MudImage Src="@_playerData.PhotoUrl" ObjectPosition="ObjectPosition.Left"></MudImage>
+    <MudPaper Class="pa-3"><h3>Name:</h3> <b>@_playerData.Forename @_playerData.Surname</b></MudPaper>
+    <MudPaper Class="pa-3"><h3>Date of Birth:</h3> <b>@_playerData.DateOfBirth.ToString("dddd, dd MMMM yyyy")</b></MudPaper>
+    <MudPaper Class="pa-3"><h3>Total Compensation:</h3> <b>£@_totalSalary.ToString("N0")</b></MudPaper>
+    <MudPaper Class="pa-3"><h3>Club:</h3> <b>@_playerData.Club</b></MudPaper>
+    <MudPaper Class="pa-3"><h3>Squad:</h3> <b>@_playerData.Squad</b></MudPaper>
+    <MudPaper Class="pa-3"><h3>Position:</h3> <b>@_playerData.Position</b></MudPaper>
+    <MudPaper Class="pa-3"><h3>Contract End Date:</h3> <b>@_playerData.ContractEndDate.ToString("dddd, dd MMMM yyyy")</b></MudPaper>
+</MudStack>
+
+<MudSimpleTable Hover="true">
+    <thead>
+    <tr>
+        <th>Date Paid</th>
+        <th>Amount Paid</th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var month in _playerData.MonthlySalary)
+    {
+        <tr>
+            <td>
+                @month.PaymentDate.ToString("dddd, dd MMMM yyyy")
+            </td>
+            <td>
+                £@month.Wage.ToString("N0")
+            </td>
+        </tr>
+    }
+    </tbody>
+</MudSimpleTable>
+
+@code {
+    [Parameter]
+    public int PlayerHashCode { get; set; }
+
+    Models.Player _playerData = new();
+    int _totalSalary;
+
+    protected override void OnInitialized()
+    {
+        _playerData = (Models.Player)StateContainer.ObjectTunnel[PlayerHashCode];
+        foreach (var monthlySalary in _playerData.MonthlySalary)
+        {
+            _totalSalary += monthlySalary.Wage;
+        }
+    }
+
+}

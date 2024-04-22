@@ -1,0 +1,33 @@
+@page "/playersEntryway/{playerDataHash:int}"
+@using System.Net.Http.Headers
+@using club_dna_challenge.Models
+@inject StateContainer StateContainer
+@inject HttpClient HttpClient
+@inject NavigationManager NavigationManager
+
+<MudButton Color="Color.Primary" OnClick="@LoadPlayerData">Load player data</MudButton>
+
+@code {
+    [Parameter]
+    public int PlayerDataHash { get; set; }
+
+    GetPlayerDataClubDnaResponse _playerData = new();
+    
+    async void LoadPlayerData()
+    {
+        var token = (GetTokenResponse)StateContainer.ObjectTunnel[PlayerDataHash];
+        HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Data.Token);
+
+        var response = await HttpClient.GetAsync("https://api-dev.club-dna.com/api/test/players").ConfigureAwait(false);
+
+        if (response.IsSuccessStatusCode)
+        {
+            var responseContent = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            _playerData = JsonConvert.DeserializeObject<GetPlayerDataClubDnaResponse>(responseContent);
+            StateContainer.ObjectTunnel.Add(_playerData.GetHashCode(), _playerData);
+            
+            NavigationManager.NavigateTo($"players/{_playerData.GetHashCode()}");
+        }
+    }
+    
+}

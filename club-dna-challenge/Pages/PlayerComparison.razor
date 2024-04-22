@@ -1,0 +1,39 @@
+@page "/playerComparison/{playerHashCode:int}"
+@using club_dna_challenge.Models
+@inject StateContainer StateContainer
+
+<MudPaper Class="d-flex flex-wrap gap-4" MaxWidth="1500px">
+    @foreach (var (player, index) in _selectedPlayers.Select((player, index) => (player, index)))
+    {
+        <MudStack Row="true" Wrap="Wrap.Wrap" AlignItems="AlignItems.Start" Spacing="4">
+            <MudImage Src="@player.PhotoUrl" ObjectPosition="ObjectPosition.Left"></MudImage>
+            <MudPaper Class="pa-3"><h3>Name:</h3> <b>@player.Forename @player.Surname</b></MudPaper>
+            <MudPaper Class="pa-3"><h3>Club:</h3> <b>@player.Club</b></MudPaper>
+            <MudPaper Class="pa-3"><h3>Total Compensation:</h3> <b>£@_totalSalaries[index].ToString("N0")</b></MudPaper>
+        </MudStack>
+    }
+</MudPaper>
+
+
+@code {
+    [Parameter]
+    public int PlayerHashCode { get; set; }
+
+    List<Models.Player> _selectedPlayers = [];
+    List<int> _totalSalaries = [];
+    
+    protected override void OnInitialized()
+    {
+        _selectedPlayers = (List<Models.Player>)StateContainer.ObjectTunnel[PlayerHashCode];
+        foreach (var player in _selectedPlayers)
+        {
+            var playerTotalSalary = 0;
+            foreach (var salary in player.MonthlySalary)
+            {
+                playerTotalSalary += salary.Wage;
+            }
+            _totalSalaries.Add(playerTotalSalary);
+        }
+        
+    }
+}
